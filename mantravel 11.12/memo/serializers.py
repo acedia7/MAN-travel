@@ -4,4 +4,4 @@ from .models import Memo
 class MemoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Memo
-        fields = '__all__'
+        fields = ['id',  'name', 'note', 'status', 'created_at']

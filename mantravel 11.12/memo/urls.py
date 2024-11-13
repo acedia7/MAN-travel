@@ -1,10 +1,7 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import MemoViewSet
-
-router = DefaultRouter()
-router.register(r'memos', MemoViewSet)
+from django.urls import path
+from .views import MemoListCreateView, MemoDetailView
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('memos/', MemoListCreateView.as_view(), name='memo-list-create'),  # 列表和创建
+    path('memos/<int:pk>/', MemoDetailView.as_view(), name='memo-detail'),  # 详情、更新和删除
 ]
