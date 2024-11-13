@@ -1,13 +1,19 @@
-from rest_framework import viewsets
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
 from .models import Memo
 from .serializers import MemoSerializer
 # Create your views here.
 
 
-class MemoViewSet(viewsets.ModelViewSet):
+class MemoListCreateView(generics.ListCreateAPIView):
     queryset = Memo.objects.all()
     serializer_class = MemoSerializer
+    permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        print("Received request:", request.data)  # 添加调试信息
-        return super().create(request, *args, **kwargs)
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)  # 保存当前用户
+
+class MemoDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Memo.objects.all()
+    serializer_class = MemoSerializer
+    permission_classes = [IsAuthenticated]

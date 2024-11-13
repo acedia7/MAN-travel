@@ -30,4 +30,6 @@ urlpatterns = [
     path('kimi-chat/', kimi_chat_view, name='kimi_chat'),
     path('api/accounts/', include('accounts.urls')),  # 包含 accounts 应用的路由
     path('', home),  # 根路径配置
+    path('api/memos/', include('memo.urls')),  # 包含备忘录应用的路由
+    path('api/bills/', include('bills.urls')),
 ]

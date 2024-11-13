@@ -14,14 +14,13 @@ from pathlib import Path
 from datetime import timedelta
 import os
 from dotenv import load_dotenv
-
 # 加载 .env 文件
 load_dotenv()
 
 # 现在你可以通过 os.getenv() 获取环境变量
 ALIYUN_ACCESS_KEY_ID = os.getenv("ALIYUN_ACCESS_KEY_ID")
 ALIYUN_ACCESS_KEY_SECRET = os.getenv("ALIYUN_ACCESS_KEY_SECRET")
-
+AUTH_USER_MODEL = 'accounts.CustomUser'
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -50,9 +49,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'accounts',
     'rest_framework_simplejwt',
-    'memo',
     'trip',
     'third_service',
+    'memo',
+    'bills',
 ]
 
 REST_FRAMEWORK = {
@@ -66,8 +66,12 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
-
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'my_cache_table',
+    }
+}
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -107,7 +111,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'load_db',  # 替换为你的数据库名称
         'USER': 'root',  # 数据库用户名
-        'PASSWORD': '123456',  # 数据库密码
+        'PASSWORD': '170037',  # 数据库密码
         'HOST': '127.0.0.1',  # MySQL 服务主机
         'PORT': '3306',  # MySQL 端口
         'OPTIONS': {
@@ -147,7 +151,7 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)

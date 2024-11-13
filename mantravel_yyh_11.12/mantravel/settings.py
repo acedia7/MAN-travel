@@ -80,7 +80,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',  # 使用MySQL数据库
         'NAME': 'mantravel_trip',  # 数据库名称
         'USER': 'root',  # 数据库用户名
-        'PASSWORD': '123456',  # 数据库密码
+        'PASSWORD': '170037',  # 数据库密码
         'HOST': 'localhost',  # 数据库主机
         'PORT': '3306',  # MySQL的默认端口号
     }

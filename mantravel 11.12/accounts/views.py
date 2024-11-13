@@ -34,6 +34,8 @@ class RegisterView(APIView):
             return Response({"error": "Failed to send verification code"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+from django.utils import timezone
+
 class LoginView(APIView):
     def post(self, request):
         phone = request.data.get('phone')
@@ -52,11 +54,21 @@ class LoginView(APIView):
                     user.set_unusable_password()  # 如果自动注册用户，设一个不可用密码
                     user.save()
 
+                # 更新 last_login 字段
+                user.last_login = timezone.now()
+                user.save()
+
                 # 生成并返回 JWT token
                 refresh = RefreshToken.for_user(user)
+                access_token = str(refresh.access_token)
+
+                # 保存 access token 到数据库
+                user.access_token = access_token
+                user.save()
+
                 return Response({
                     'refresh': str(refresh),
-                    'access': str(refresh.access_token),
+                    'access': access_token,
                 }, status=status.HTTP_200_OK)
             except Exception as e:
                 logger.error(f"Error during user registration or JWT token generation for {phone}: {e}")
