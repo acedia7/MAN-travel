@@ -103,14 +103,15 @@ export default {
       this.showBudgetInput = false;
     },
     fetchBillRecords() {
-      const apiUrl = 'http://localhost:8000/api/bills/expenses/'; // 确保这是您的后端API地址
+		const token = uni.getStorageSync('access_token');
+      const apiUrl = `https://734dw56037em.vicp.fun/api/bills/expenses/`; // 确保这是您的后端API地址
       
       uni.request({
         url: apiUrl,
         method: 'GET',
         header: {
           'Content-Type': 'application/json', // 确保发送正确的Content-Type
-          'Authorization': 'Bearer ' + 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoyMDQ3NzIxNTk1LCJpYXQiOjE3MzIzNjE1OTUsImp0aSI6IjZhMDRkYTc4NTlkZjQ2MmI4Y2IzZjYzODZkNjgwYTViIiwidXNlcl9pZCI6NH0.1SVjp969mJARPT89y4EZl2wZltoojtIzaNMD5hhyZ5g' // 替换为您的实际Token
+          'Authorization': `Bearer ${token}`, // 将 token 放入 Authorization 头中
         },
         success: (res) => {
           if (res.statusCode === 200) {
@@ -127,10 +128,7 @@ export default {
           }
         },
         fail: (err) => {
-          uni.showToast({
-            title: '网络请求失败',
-            icon: 'none'
-          });
+
           console.error('请求失败:', err);
         }
       });
@@ -138,9 +136,6 @@ export default {
   },
   mounted() {
      this.fetchBillRecords();
-     this.timer = setInterval(() => {
-       this.fetchBillRecords();
-     }, 1000); // 每10秒获取一次数据
    },
    beforeDestroy() {
      if (this.timer) {
