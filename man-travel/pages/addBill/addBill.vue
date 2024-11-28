@@ -136,10 +136,10 @@ export default {
         console.log('Request Data:', requestData);
         // 设置 headers，包括身份认证信息
         const config = {
-          headers: {
-            'Authorization': 'Bearer ' + 'token', // 替换为实际的 Bearer 令牌
-            'Content-Type': 'application/json' // 根据后端要求设置正确的 Content-Type
-          }
+          header: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`, // 将 token 放入 Authorization 头中
+          },
         };
 
         // 发送 POST 请求到后端

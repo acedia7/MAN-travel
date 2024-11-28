@@ -78,7 +78,7 @@ export default {
 	  
 	      // 发送 POST 请求更新状态
 	      try {
-	        const response = await fetch(`http://127.0.0.1:8000/api/memos/memos/${item.id}/`,  {
+	        const response = await fetch(`https://734dw56037em.vicp.fun/api/memos/memos/${item.id}/`,  {
 	          method: 'PUT',
 	          headers: {
 	            'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ export default {
    this.categorizedItems = Object.values(categorized);
  },
     fetchItems() {
-      fetch('http://127.0.0.1:8000/api/memos/memos/',   { // 确保 URL 正确
+      fetch('https://734dw56037em.vicp.fun/api/memos/memos/',   { // 确保 URL 正确
         method: 'GET',
         headers: {
          'Authorization': `Bearer ${this.token}` // 如果需要认证的话

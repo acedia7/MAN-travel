@@ -140,7 +140,7 @@ computed: {
          trip_information: null
        };
      
-       fetch('http://127.0.0.1:8000/api/memos/memos/',  { // 确保 URL 正确
+       fetch('https://734dw56037em.vicp.fun/api/memos/memos/',  { // 确保 URL 正确
          method: 'POST',
          headers: {
            'Content-Type': 'application/json', // 确保这是服务器期望的格式
