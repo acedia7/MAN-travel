@@ -432,7 +432,7 @@ mounted() {
               const tripId = this.tripId;
               if (tripId) {
                 uni.navigateTo({
-                  url: `${pagePath}?id=${tripId}`,
+                  url: `${pagePath}?trip_id=${tripId}`,
                   success: (res) => {
                     res.eventChannel.emit('acceptTripData', { tripData: this.tripData });
                   }
@@ -451,7 +451,7 @@ mounted() {
             handleShouyeClick() {
                 this.navigateToPage('/pages/shouye/shouye');
             },
-
+           
             // 点击“行李清单”按钮的跳转逻辑
             handleXingliClick() {
                 this.navigateToPage('/pages/xingli/xingli');

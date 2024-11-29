@@ -63,14 +63,40 @@ export default {
       keys: ["1", "2", "3", "✖️", "4", "5", "6", "+", "7", "8", "9", "-", ".", "0", "完成"],
       date: "",          // 存储用户输入的日期
       showDateInputFlag: false, // 控制日期输入框的显示
-      trip_information: 13
+      trip_information: 13,
+	  tripId: null
     };
   },
+  mounted() {
+    // 从路由参数中获取 trip_id
+    const tripId = this.$route.query.trip_id;
+    this.tripId = tripId; // 将 trip_id 存储在组件的数据中
+  
+    // 打印 trip_id
+    console.log('当前页面的 trip_id:', this.tripId);
+  },
   methods: {
+	  navigateToPage(pagePath) {
+	               const tripId = this.tripId;
+	               if (tripId) {
+	                 uni.navigateTo({
+	                   url: `${pagePath}?trip_id=${tripId}`,
+	                   success: (res) => {
+	                     res.eventChannel.emit('acceptTripData', { tripData: this.tripData });
+	                   }
+	                 });
+	               } else {
+	                 console.error('未找到 trip_id 参数，无法跳转');
+	                 uni.showToast({
+	                   title: '未找到行程 ID，无法跳转',
+	                   icon: 'none',
+	                   duration: 3000
+	                 });
+	               }
+	             },
+	
 	jumpToIndex1() {
-	    uni.navigateTo({
-	      url: '/pages/index1/index1'
-	    });
+	   this.navigateToPage('/pages/index1/index1');
 	  },
     // 选择分类
     selectCategory(index) {
@@ -125,14 +151,14 @@ export default {
 
       try {
         // 构造请求体
-		const token = uni.getStorageSync('access_token');
-        const requestData = {
-          category: this.categories[this.selectedCategory].name,
-          remark: this.remark,
-          date: this.date,
-          amount: parseFloat(this.amount), // 转换为数字
-          trip_information: 1 // 假设 trip_information 是固定值
-        };
+	const token = uni.getStorageSync('access_token');
+    const requestData = {
+     category: this.categories[this.selectedCategory].name,
+     remark: this.remark,
+     date: this.date,
+     amount: parseFloat(this.amount), // 转换为数字
+     trip_information: this.tripId // 使用当前页面的 trip_id
+   };
         console.log('Request Data:', requestData);
         // 设置 headers，包括身份认证信息
         const config = {

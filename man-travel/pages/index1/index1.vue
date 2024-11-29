@@ -2,7 +2,7 @@
   <view class="container">
     <!-- 顶部导航栏 -->
     <view class="navbar">
-      <text class="title">福州三日游 | 在三坊七巷感受榕城秋日古韵</text>
+      <text class="trip-name">{{ tripTitle }}</text>
       <text class="sub-title">10.1-10.3 | 3天2晚</text>
       <view class="tabs">
         <text class="tab-item">行程</text>
@@ -28,8 +28,7 @@
     </view>
 
     <view class="detail-section">
-      <!-- 使用 v-for 循环遍历 billRecords 数组 -->
-      <view v-for="(record, index) in billRecords" :key="record.id" class="detail-item">
+      <view v-for="(record, index) in filteredBillRecords" :key="record.id" class="detail-item">
         <!-- 日期 -->
         <view class="date-wrapper">
           <text class="date">{{ record.date }}</text>
@@ -65,14 +64,86 @@
 export default {
   data() {
     return {
-      showBudgetInput: false, // 控制预算输入框显示
-      budget: '', // 存储当前预算输入值
-      keys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'C', '←'], // 数字键盘按键
-      billRecords: [], // 用于存储从后端获取的账单记录
-      totalAmount: 0, // 总金额，初始化为0
+	  tripTitle: '', // 行程标题
+      showBudgetInput: false,
+      budget: '',
+      keys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'C', '←'],
+      billRecords: [],
+      tripId: null, // 存储trip_id的值
     };
   },
+ computed: {
+    // 根据 trip_id 过滤账单记录
+    filteredBillRecords() {
+		console.log('路由参数 trip_id 更新为:', this.tripId);
+      // 确保 this.tripId 已经被定义，并且 billRecords 数组中有 trip_information 属性
+      return this.billRecords.filter(record => record.trip_information === parseInt(this.tripId));
+    },
+    // 计算 filteredBillRecords 的总金额
+    totalAmount() {
+      // 确保 filteredBillRecords 不是空数组
+      return this.filteredBillRecords.reduce((total, record) => {
+        return total + parseFloat(record.amount);
+      }, 0).toFixed(2);
+    }
+  },
+  mounted() {
+    // 从查询参数中获取 trip_id
+    this.tripId = this.$route.query.trip_id;
+    console.log('路由参数 trip_id 更新为:', this.tripId);
+    this.fetchBillRecords();
+  },
   methods: {
+	fetchTripActivities(tripId) {
+	    if (!tripId) {
+	        uni.showToast({
+	            title: '缺少行程 ID',
+	            icon: 'none',
+	        });
+	        return;
+	    }
+	
+	    // 构建请求 URL，添加查询参数，参数名为 trip_information_id
+	    const url = `https://734dw56037em.vicp.fun/api/trip/get_trip_activities/?trip_information_id=${tripId}`;
+	    console.log('请求 URL:', url);
+	
+	    // 发起 GET 请求
+	    uni.request({
+	        url: url,
+	        method: 'GET',
+	        headers: {
+	          'Content-Type': 'application/json',
+	          // 根据需要可以添加更多的请求头
+	        },
+	        success: (res) => {
+	            console.log('响应状态码:', res.statusCode);
+	            console.log('响应数据:', res.data);
+	            console.log('响应头:', res.header);
+	
+	            if (res.statusCode === 200) {
+	                const tripData = res.data;
+	                if (!tripData) {
+	                    console.error('未获取到有效的行程数据');
+	                    return;
+	                }
+	                console.log('行程数据:', tripData);
+	                this.initTripData(tripData);
+	            } else {
+	                uni.showToast({
+	                    title: res.data.error || '请求失败',
+	                    icon: 'none',
+	                });
+	            }
+	        },
+	        fail: (err) => {
+	            console.error('请求失败:', err);
+	            uni.showToast({
+	                title: '网络请求失败，请稍后重试',
+	                icon: 'none',
+	            });
+	        },
+	    });
+	},
     goToPackingList() {
       uni.navigateTo({
         url: '/pages/xingli/xingli'  // 跳转路径
@@ -102,57 +173,110 @@ export default {
     closeKeyboard() {
       this.showBudgetInput = false;
     },
-    fetchBillRecords() {
-		const token = uni.getStorageSync('access_token');
-      const apiUrl = `https://734dw56037em.vicp.fun/api/bills/expenses/`; // 确保这是您的后端API地址
-      
-      uni.request({
-        url: apiUrl,
-        method: 'GET',
-        header: {
-          'Content-Type': 'application/json', // 确保发送正确的Content-Type
-          'Authorization': `Bearer ${token}`, // 将 token 放入 Authorization 头中
-        },
-        success: (res) => {
-          if (res.statusCode === 200) {
-            this.billRecords = res.data;
-            this.totalAmount = this.billRecords.reduce((total, record) => {
-              return total + parseFloat(record.amount);
-            }, 0).toFixed(2);
-          } else {
-            uni.showToast({
-              title: '获取账单记录失败: ' + res.statusCode,
-              icon: 'none'
-            });
-            console.error('获取账单记录失败，状态码：', res.statusCode);
-          }
-        },
-        fail: (err) => {
-
-          console.error('请求失败:', err);
-        }
-      });
-    }
-  },
-  mounted() {
-     this.fetchBillRecords();
+ fetchBillRecords() {
+       const token = uni.getStorageSync('access_token');
+       const apiUrl = `https://734dw56037em.vicp.fun/api/bills/expenses/`;  // 确保这是您的后端API地址
+       uni.request({
+         url: apiUrl,
+         method: 'GET',
+         header: {
+           'Content-Type': 'application/json',
+           'Authorization': `Bearer ${token}`,
+         },
+		 
+         success: (res) => {
+           if (res.statusCode === 200) {
+             this.billRecords = res.data;
+             console.log('更新后的 billRecords:', this.billRecords);
+           } else {
+             uni.showToast({
+               title: '获取账单记录失败: ' + res.statusCode,
+               icon: 'none'
+             });
+             console.error('获取账单记录失败，状态码：', res.statusCode);
+           }
+         },
+         fail: (err) => {
+           console.error('请求失败:', err);
+           uni.showToast({
+             title: '请求失败，请检查网络连接或联系服务提供商',
+             icon: 'none'
+           });
+         }
+       });
+     },
+	 
    },
-   beforeDestroy() {
-     if (this.timer) {
-       clearInterval(this.timer);
-     }
-   },
-   computed: {
-     totalAmount() {
-       return this.billRecords.reduce((total, record) => {
-         return total + parseFloat(record.amount);
-       }, 0).toFixed(2); // 使用 toFixed(2) 来格式化为两位小数
-     }
-   }
+   initTripData(tripData) {
+       if (!tripData) {
+           console.error('没有行程数据');
+           return;
+       }
    
- };
+       const isLocalData = typeof tripData.trip_id !== 'undefined';
+       if (isLocalData) {
+           this.tripTitle = tripData.title || '未知行程';
+           this.travelDateRange = tripData.dateRange || '';
+           this.tripDuration = tripData.duration || '';
+           this.places = tripData.places || [];
+           this.weatherForecast = tripData.weather || [];
+           this.placeCoordinates = tripData.placeCoordinates || {};
+           this.dailyTrips = tripData.dailyTrips || [];
+           
+           const dayCount = this.dailyTrips.length;
+           this.days = ['总览', ...Array.from({ length: dayCount }, (_, i) => `DAY${i + 1}`)];
+       } else {
+           const tripInfo = tripData.trip && tripData.trip.length > 0 ? tripData.trip[0] : {};
+           const activities = tripData.activities || [];
+   
+           if (!tripInfo.trip_name) {
+               console.error('tripData 中没有有效的行程信息');
+               return;
+           }
+   
+           this.tripTitle = tripInfo.trip_name || '未知行程';
+           this.travelDateRange = `${tripInfo.start_date} 至 ${tripInfo.end_date}`;
+           const startDate = new Date(tripInfo.start_date);
+           const endDate = new Date(tripInfo.end_date);
+           const timeDiff = endDate - startDate;
+           const daysDiff = timeDiff / (1000 * 3600 * 24) + 1;
+           this.tripDuration = `${daysDiff}天`;
+   
+           this.places = activities.map(activity => activity.trip_destination);
+           this.placeCoordinates = {};
+           this.dailyTrips = [];
+           const activitiesByDay = {};
+           activities.forEach(activity => {
+               const dayKey = `DAY${activity.days}`;
+               if (!activitiesByDay[dayKey]) {
+                   activitiesByDay[dayKey] = [];
+               }
+               activitiesByDay[dayKey].push(activity.trip_destination);
+           });
+   
+           for (let day in activitiesByDay) {
+               this.dailyTrips.push({
+                   day: day,
+                   city: tripInfo.trip_name,
+                   places: activitiesByDay[day].join(' - ')
+               });
+           }
+   
+           this.days = ['总览', ...Array.from({ length: daysDiff }, (_, i) => `DAY${i + 1}`)];
+       }
+   
+       this.initMap(this.placeCoordinates);
+   },
+   
+  beforeDestroy() {
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+  }
+};
 </script>
 <style>
+
 .budget-input-overlay {
   position: fixed;
   top: 0;

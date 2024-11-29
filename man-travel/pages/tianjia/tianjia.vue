@@ -116,6 +116,13 @@ computed: {
     return uniqueItems.values();
   }
 },
+  mounted() {
+    // 从路由参数中获取 trip_id
+    const tripId = this.$route.query.trip_id;
+    this.tripId = tripId; // 将 trip_id 存储在组件的数据中
+    // 打印 trip_id
+    console.log('当前页面的 trip_id:', this.tripId);
+  },
   methods: {
     goBack() {
       uni.navigateBack();
@@ -129,6 +136,7 @@ computed: {
           this.sendPostRequest(item, this.token); // 调用发送 POST 请求的方法
         },
      sendPostRequest(item) {
+		  
        // 获取当前分类的 title
        const currentCategoryTitle = this.categories[this.currentCategory].title;
        const requestData = {
@@ -137,9 +145,9 @@ computed: {
          note: currentCategoryTitle, // 使用当前分类的 title 作为 note 的值
          status: "no", // 默认为 no
          created_at: new Date().toISOString(), // 当前时间
-         trip_information: null
+         trip_information: this.tripId,
        };
-     
+     console.log('请求体数据:', requestData);
        fetch('https://734dw56037em.vicp.fun/api/memos/memos/',  { // 确保 URL 正确
          method: 'POST',
          headers: {
@@ -161,11 +169,26 @@ computed: {
          console.error('Error:', error);
        });
      },
+	 navigateToPage(pagePath) {
+	                const tripId = this.tripId;
+	                if (tripId) {
+	                  uni.navigateTo({
+	                    url: `${pagePath}?trip_id=${tripId}`,
+	                    success: (res) => {
+	                      res.eventChannel.emit('acceptTripData', { tripData: this.tripData });
+	                    }
+	                  });
+	                } else {
+	                  console.error('未找到 trip_id 参数，无法跳转');
+	                  uni.showToast({
+	                    title: '未找到行程 ID，无法跳转',
+	                    icon: 'none',
+	                    duration: 3000
+	                  });
+	                }
+	              },
 	saveAndNavigate() {
-	    // 这里可以添加保存物品列表的逻辑，如果需要的话
-	    uni.navigateTo({
-	      url: '/pages/index2/index2' // 确保这是正确的路径
-	    });
+	    this.navigateToPage('/pages/index2/index2');
 	  }
   }
 };

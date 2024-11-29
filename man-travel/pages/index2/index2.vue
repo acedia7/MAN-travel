@@ -26,26 +26,26 @@
       <view class="horizontal-line"></view>
     </view>
 
-    <!-- 白色矩形区域 -->
     <view class="white-rectangle packing-list">
-      <!-- 分类展示区域 -->
-      <view v-for="(category, index) in categorizedItems" :key="index" class="category">
-        <text class="category-title">{{ category.title }} ({{ category.completedCount }})</text>
-        <!-- 物品列表 -->
-        <view class="item-list">
-       <view class="item" v-for="item in category.items" :key="item.id">
-         <text>{{ item.name }}</text>
-         <!-- 点击复选框时调用 toggleCompletion 方法 -->
-         <view class="checkbox" @click="toggleCompletion(item)" :class="{ 'checked': item.status === 'yes' }"></view>
-       </view>
+          <!-- 分类展示区域 -->
+          <view v-for="(category, index) in categorizedItems" :key="index" class="category">
+            <text class="category-title">{{ category.title }} ({{ category.completedCount }})</text>
+            <!-- 物品列表 -->
+            <view class="item-list">
+              <!-- 遍历每个分类下的物品 -->
+              <view class="item" v-for="item in category.items" :key="item.id">
+                <text>{{ item.name }}</text>
+                <!-- 点击复选框时调用 toggleCompletion 方法 -->
+                <view class="checkbox" @click="toggleCompletion(item)" :class="{ 'checked': item.status === 'yes' }"></view>
+              </view>
+            </view>
+          </view>
+    
+          <!-- 开始添加按钮，添加点击事件 -->
+          <button class="add-button" @click="goToAddPage">开始添加</button>
         </view>
       </view>
-
-      <!-- 开始添加按钮，添加点击事件 -->
-      <button class="add-button" @click="goToAddPage">开始添加</button>
-    </view>
-  </view>
-</template>
+    </template>
 
 <script>
 export default {
@@ -59,6 +59,13 @@ export default {
       categorizedItems: [],
       token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoyMDQ3NjQ5MDI0LCJpYXQiOjE3MzIyODkwMjQsImp0aSI6ImJkYmYzMWRlMTAwNTQ4ZTE5ZmI4NWQ5MDhjMGUzODZhIiwidXNlcl9pZCI6M30.JgXdiNcV3wVC73KWKORyOERdyeElEIm4ER5uWuNU3B0', // 假设你有一个令牌用于认证
     };
+  },
+  mounted() {
+    // 从路由参数中获取 trip_id
+    const tripId = this.$route.query.trip_id;
+    this.tripId = tripId; // 将 trip_id 存储在组件的数据中
+    // 打印 trip_id
+    console.log('当前页面的 trip_id:', this.tripId);
   },
   methods: {
 	   async toggleCompletion(item) {
@@ -111,17 +118,17 @@ export default {
     },
     handleShowOverview() {
       uni.navigateTo({
-        url: `/pages/Overview/Overview?id=${this.tripId}`
+        url: `/pages/Overview/Overview?trip_id=${this.tripId}`
       });
     },
     goToBillPage() {
       uni.navigateTo({
-        url: `/pages/shouye/shouye?id=${this.tripId}`
+        url: `/pages/shouye/shouye?trip_id=${this.tripId}`
       });
     },
     goToAddPage() {
       uni.navigateTo({
-        url: `/pages/tianjia/tianjia?id=${this.tripId}`
+        url: `/pages/tianjia/tianjia?trip_id=${this.tripId}`
       });
     },
  categorizeItems() {
@@ -140,11 +147,11 @@ export default {
    });
    this.categorizedItems = Object.values(categorized);
  },
-    fetchItems() {
-      fetch('https://734dw56037em.vicp.fun/api/memos/memos/',   { // 确保 URL 正确
+   fetchItems() {
+      fetch('https://734dw56037em.vicp.fun/api/memos/memos/', { // 确保 URL 正确
         method: 'GET',
         headers: {
-         'Authorization': `Bearer ${this.token}` // 如果需要认证的话
+          'Authorization': `Bearer ${this.token}` // 如果需要认证的话
         },
       })
       .then(response => {
@@ -154,22 +161,36 @@ export default {
         throw new Error('Network response was not ok.');
       })
       .then(data => {
-        this.fetchedItems = data; // 更新fetchedItems数组
-        this.categorizeItems(); // 获取数据后进行分类
+        this.fetchedItems = data; // 假设返回的数据是数组形式
+        console.log('从 API 获取的数据:', data); // 更新fetchedItems数组
+        this.filterItemsByTripId(); // 过滤数据
       })
       .catch((error) => {
-        console.error('Error:', error);
+        console.error('Error fetching items:', error);
+        uni.showToast({
+          title: '数据加载失败，请检查网络连接',
+          icon: 'none'
+        });
       });
-    }
+    },
+  
+filterItemsByTripId() {
+  // 确保 tripId 是整数
+  const tripId = parseInt(this.tripId, 10);
+
+  // 过滤 fetchedItems 数组，只保留 trip_information 匹配的项
+  this.fetchedItems = this.fetchedItems.filter(item => item.trip_information === tripId);
+  
+  // 打印过滤后的数据
+  console.table(this.fetchedItems);
+
+  // 如果需要，可以继续对过滤后的数据进行分类处理
+  this.categorizeItems();
+},
   },
   created() {
     this.fetchItems(); // 在组件创建时获取物品数据
   },
-  mounted() {
-    setInterval(() => {
-      this.fetchItems();
-    }, 10000); // 每隔 10 秒获取一次数据
-  }
 };
 </script>
 
